@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/USACE/go-consequences/geography"
+	"app/geography"
+
 	"github.com/dewberry/gdal"
 )
 

@@ -3,9 +3,10 @@ package structures
 import (
 	"math/rand"
 
+	"app/hazards"
+	"app/paireddata"
+
 	"github.com/HydrologicEngineeringCenter/go-statistics/statistics"
-	"github.com/USACE/go-consequences/hazards"
-	"github.com/USACE/go-consequences/paireddata"
 )
 
 //OccupancyType interface allows for multiple hazards that integrate with structures

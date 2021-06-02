@@ -1,6 +1,6 @@
-module github.com/USACE/go-consequences
+module app
 
-go 1.15
+go 1.16
 
 require (
 	github.com/HydrologicEngineeringCenter/go-statistics v0.0.0-20210427215836-c320f5ce1b22

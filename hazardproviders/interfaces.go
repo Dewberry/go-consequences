@@ -3,8 +3,8 @@ package hazardproviders
 import (
 	"fmt"
 
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazards"
+	"app/geography"
+	"app/hazards"
 )
 
 //HazardProvider provides hazards as a return for an argument input
@@ -38,6 +38,7 @@ type HazardError struct {
 func (h NoHazardFoundError) Error() string {
 	return fmt.Sprintf("No hazard Found for %s", h.Input)
 }
+
 //Error implements the error interface for NoDataHazardError
 func (h NoDataHazardError) Error() string {
 	return fmt.Sprintf("Location yeilded No Data for a hazard. %s", h.Input)

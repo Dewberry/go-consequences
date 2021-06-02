@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/USACE/go-consequences/hazards"
+	"app/hazards"
 )
 
 func TestComputeCropDamageCase_FloodedBeforePlanting(t *testing.T) {

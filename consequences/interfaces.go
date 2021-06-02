@@ -3,9 +3,10 @@ package consequences
 import (
 	"reflect"
 
+	"app/geography"
+	"app/hazards"
+
 	"github.com/HydrologicEngineeringCenter/go-statistics/statistics"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazards"
 	"github.com/dewberry/gdal"
 )
 

@@ -5,7 +5,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/USACE/go-consequences/hazards"
+	"app/hazards"
+
 	"github.com/dewberry/gdal"
 )
 

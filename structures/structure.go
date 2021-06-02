@@ -3,9 +3,9 @@ package structures
 import (
 	"math/rand"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazards"
+	"app/consequences"
+	"app/geography"
+	"app/hazards"
 )
 
 //BaseStructure represents a Structure name xy location and a damage category

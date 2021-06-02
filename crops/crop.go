@@ -3,8 +3,8 @@ package crops
 import (
 	"fmt"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/hazards"
+	"app/consequences"
+	"app/hazards"
 )
 
 //Crop describes a crop that can be used to compute agricultural consequences

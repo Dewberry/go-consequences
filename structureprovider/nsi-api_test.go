@@ -5,10 +5,10 @@ import (
 	"sync"
 	"testing"
 
-	"github.com/USACE/go-consequences/census"
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/structures"
+	"app/census"
+	"app/consequences"
+	"app/geography"
+	"app/structures"
 )
 
 func TestNsiByFipsStream(t *testing.T) {

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/USACE/go-consequences/hazards"
-	"github.com/USACE/go-consequences/paireddata"
+	"app/hazards"
+	"app/paireddata"
 )
 
 func TestDamageFunctionFamily(t *testing.T) {

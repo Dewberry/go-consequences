@@ -3,8 +3,9 @@ package structureprovider
 import (
 	"fmt"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/structures"
+	"app/consequences"
+	"app/structures"
+
 	"github.com/dewberry/gdal"
 )
 

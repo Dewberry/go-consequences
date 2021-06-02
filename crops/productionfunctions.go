@@ -3,7 +3,7 @@ package crops
 import (
 	"time"
 
-	"github.com/USACE/go-consequences/hazards"
+	"app/hazards"
 )
 
 type productionFunction struct {

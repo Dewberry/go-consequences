@@ -1,8 +1,8 @@
 package hazardproviders
 
 import (
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazards"
+	"app/geography"
+	"app/hazards"
 )
 
 type cogHazardProvider struct {

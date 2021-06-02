@@ -8,9 +8,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/structures"
+	"app/consequences"
+	"app/geography"
+	"app/structures"
 )
 
 //NsiProperties is a reflection of the JSON feature property attributes from the NSI-API

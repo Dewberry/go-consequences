@@ -3,9 +3,10 @@ package structureprovider
 import (
 	"log"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/structures"
+	"app/consequences"
+	"app/geography"
+	"app/structures"
+
 	"github.com/dewberry/gdal"
 )
 

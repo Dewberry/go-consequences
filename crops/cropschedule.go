@@ -3,7 +3,7 @@ package crops
 import (
 	"time"
 
-	"github.com/USACE/go-consequences/hazards"
+	"app/hazards"
 )
 
 //CropSchedule stores the start and end of planting season, and time to maturity in days

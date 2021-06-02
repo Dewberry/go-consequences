@@ -3,9 +3,9 @@ package compute
 import (
 	"testing"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/hazardproviders"
-	"github.com/USACE/go-consequences/structureprovider"
+	"app/consequences"
+	"app/hazardproviders"
+	"app/structureprovider"
 )
 
 func TestComputeEAD(t *testing.T) {

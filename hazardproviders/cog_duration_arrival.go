@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazards"
+	"app/geography"
+	"app/hazards"
 )
 
 type cogDurationAndArrivalHazardProvider struct {

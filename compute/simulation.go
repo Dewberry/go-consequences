@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazardproviders"
-	"github.com/USACE/go-consequences/hazards"
+	"app/consequences"
+	"app/geography"
+	"app/hazardproviders"
+	"app/hazards"
 )
 
 //ComputeEAD takes an array of damages and frequencies and integrates the curve. we should probably refactor this into paired data as a function.

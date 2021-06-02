@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/USACE/go-consequences/consequences"
-	"github.com/USACE/go-consequences/geography"
-	"github.com/USACE/go-consequences/hazards"
+	"app/consequences"
+	"app/geography"
+	"app/hazards"
 )
 
 func TestGPKByFips(t *testing.T) {

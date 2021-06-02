@@ -3,7 +3,7 @@ package crops
 import (
 	"sort"
 
-	"github.com/USACE/go-consequences/hazards"
+	"app/hazards"
 )
 
 //DamageFunction manages the methodology for computing damages to crops based on a duration and seasonal damage curves
