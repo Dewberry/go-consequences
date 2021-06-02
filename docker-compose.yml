@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+    consequences:
+        build:
+            context: .
+            dockerfile: Dockerfile.dewberry
+        ports:
+            - 5000:5000
+        volumes:
+            - ./:/app
+        # env_file:
+        #     - ./.env
+        entrypoint: CompileDaemon --build="go build main.go" --command=./main
