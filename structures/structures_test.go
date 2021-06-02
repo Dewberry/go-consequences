@@ -17,12 +17,15 @@ func TestComputeConsequences(t *testing.T) {
 	x := []float64{1.0, 2.0, 3.0, 4.0}
 	y := []float64{10.0, 20.0, 30.0, 40.0}
 	pd := paireddata.PairedData{Xvals: x, Yvals: y}
+
 	sm := make(map[hazards.Parameter]paireddata.ValueSampler)
 	var sdf = DamageFunctionFamily{DamageFunctions: sm}
 	sdf.DamageFunctions[hazards.Default] = pd
 	cm := make(map[hazards.Parameter]paireddata.ValueSampler)
+
 	var cdf = DamageFunctionFamily{DamageFunctions: cm}
 	cdf.DamageFunctions[hazards.Default] = pd
+
 	var o = OccupancyTypeDeterministic{Name: "test", StructureDFF: sdf, ContentDFF: cdf}
 	var s = StructureDeterministic{OccType: o, StructVal: 100.0, ContVal: 100.0, FoundHt: 0.0, BaseStructure: BaseStructure{DamCat: "category"}}
 
