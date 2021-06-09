@@ -1,43 +1,44 @@
 package main
 
 import (
+	"app/db"
 	"app/hazards"
 	"app/structures"
 	"fmt"
 	"log"
 )
 
-func swapOcctypeMap(m map[string]structures.OccupancyTypeStochastic) map[string]structures.OccupancyTypeDeterministic {
-	m2 := make(map[string]structures.OccupancyTypeDeterministic)
-	for name, ot := range m {
-		m2[name] = ot.CentralTendency()
-	}
-	return m2
-}
-
 var ssdExample *structures.StructureSimpleDeterministic = new(structures.StructureSimpleDeterministic)
 var occType *structures.OccupancyTypeDeterministic
 var depth *hazards.DepthEvent = new(hazards.DepthEvent)
 
-// var depth *hazards.CoastalEvent = new(hazards.CoastalEvent)
-
 func main() {
 
-	m := structures.OccupancyTypeMap()
-	occTypes := swapOcctypeMap(m)
+	ddfCurve := structures.CustomCurve()
 
-	ssdExample.OccType = occTypes["RES1-1SNB"]
+	dbConn := db.Init()
+	buildingData := db.GetBuildingAttributes(dbConn)
+
+	ssdExample.OccType = ddfCurve.CentralTendency()
 	ssdExample.DamCat = "RES"
-	ssdExample.StructVal = 200000
-	ssdExample.FoundHt = 4
 
-	depth.SetDepth(4)
-	// depth.SetSalinity(true)
+	var building db.Building
 
-	damage, err := ssdExample.Compute(depth)
-	if err != nil {
-		log.Print("ERROR: ", err)
+	for i := 0; i < len(buildingData); i++ {
+
+		building = buildingData[i]
+
+		ssdExample.StructVal = building.BldValue
+		ssdExample.FoundHt = 4
+
+		depth.SetDepth(4)
+
+		sDamage, cDamage, err := ssdExample.Compute(depth)
+		if err != nil {
+			log.Print("ERROR: ", err)
+		}
+
+		fmt.Println(building.Foundation, "Structure Damage: ", sDamage, "Content Damage: ", cDamage)
 	}
 
-	fmt.Println("Calculated Damage: ", damage)
 }
