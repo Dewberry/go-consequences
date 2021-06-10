@@ -8,37 +8,46 @@ import (
 	"log"
 )
 
-var ssdExample *structures.StructureSimpleDeterministic = new(structures.StructureSimpleDeterministic)
-var occType *structures.OccupancyTypeDeterministic
 var depth *hazards.DepthEvent = new(hazards.DepthEvent)
 
 func main() {
 
-	ddfCurve := structures.CustomCurve()
+	// Read in Damage Curves from JSON
+	ddfs, err := structures.LoadCurves("structures/coastal-ddfs.json")
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// Read in Structure Data from Postgres
 	dbConn := db.Init()
 	buildingData := db.GetBuildingAttributes(dbConn)
 
-	ssdExample.OccType = ddfCurve.CentralTendency()
-	ssdExample.DamCat = "RES"
-
-	var building db.Building
-
+	// Iterate over the buildings and compute damages
 	for i := 0; i < len(buildingData); i++ {
+		var ssd structures.StructureSimpleDeterministic
 
-		building = buildingData[i]
+		ssd = buildingData[i]
 
-		ssdExample.StructVal = building.BldValue
-		ssdExample.FoundHt = 4
+		// Set Manually until fields are in place in the db matching up with curves
+		ssd.DamageCategory = "CPFRA_1901"
+		ssd.FoundationHeight = 2
 
-		depth.SetDepth(4)
-
-		sDamage, cDamage, err := ssdExample.Compute(depth)
+		damageCurve, err := structures.GetDeterministicCurve(ddfs, ssd.DamageCategory)
 		if err != nil {
-			log.Print("ERROR: ", err)
+			log.Fatal(err)
 		}
 
-		fmt.Println(building.Foundation, "Structure Damage: ", sDamage, "Content Damage: ", cDamage)
+		ssd.OccupancyType = damageCurve
+
+		depth.SetDepth(10)
+
+		structures.ComputeConsequences2(depth, &ssd)
+
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		fmt.Println(ssd.FID, "| ", ssd.StructureValue, ssd.StructureDamageValue, ssd.ContentDamageValue)
 	}
 
 }

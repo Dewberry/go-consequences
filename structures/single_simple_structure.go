@@ -3,59 +3,107 @@ package structures
 import (
 	"app/hazards"
 	"app/paireddata"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
 )
 
-// StructureSimpleDeterministic is a paired down version of struct StructureDeterministic
+// StructureSimpleDeterministic is a paired down version of  struct StructureDeterministic
 type StructureSimpleDeterministic struct {
-	Name                        string
-	DamCat                      string
-	OccType                     OccupancyTypeDeterministic
-	StructVal, ContVal, FoundHt float64
+	FID                    string                     `json:"fid" nsi:"fd_id" db:"uid"`
+	X                      float64                    `json:"x" db:"x"`
+	Y                      float64                    `json:"y" db:"y"`
+	DamageCategory         string                     `json:"damage_category"`
+	Hazard                 hazards.HazardEvent        `json:"hazard"`
+	OccupancyType          OccupancyTypeDeterministic `json:"occupancy_type"`
+	StructureValue         float64                    `json:"structure_value" db:"bldg_val"`
+	ContentsValue          float64                    `json:"contents_value"`
+	Foundation             string                     `json:"foundation" db:"foundation"`
+	FoundationHeight       float64                    `json:"foundation_height"`
+	StructureDamagePercent float64                    `json:"structure_damage_percent"`
+	ContentDamagePercent   float64                    `json:"content_damage_percent"`
+	StructureDamageValue   float64                    `json:"structure_damage_value"`
+	ContentDamageValue     float64                    `json:"content_damage_value"`
 }
 
-// StructureSimpleDeterministic computes loss at a single structure
-func (ssd StructureSimpleDeterministic) Compute(d hazards.HazardEvent) (float64, float64, error) {
-	return computeSingleConsequence(d, ssd)
-}
+// // StructureSimpleDeterministic computes loss at a single structure
+// func (ssd StructureSimpleDeterministic) Location() geography.Location {
+// 	return geography.Location{X: 12011000.000, Y: 3870500.000, SRID: "2284"}
+// }
 
-func computeSingleConsequence(e hazards.HazardEvent, ssd StructureSimpleDeterministic) (float64, float64, error) {
+func ComputeConsequences2(e hazards.HazardEvent, s *StructureSimpleDeterministic) {
+
 	if e.Has(hazards.Depth) {
-		depthAboveFFE := e.Depth() - ssd.FoundHt
-		damagePercent := ssd.OccType.GetStructureDamageFunctionForHazard(e).SampleValue(depthAboveFFE) / 100
-		damageValue := damagePercent * ssd.StructVal
+		depthAboveFFE := e.Depth() - s.FoundationHeight
+		structureDamagePercent := s.OccupancyType.GetStructureDamageFunctionForHazard(e).SampleValue(depthAboveFFE) / 100
+		contentDamagePercent := s.OccupancyType.GetContentDamageFunctionForHazard(e).SampleValue(depthAboveFFE) / 100
 
-		cdamagePercent := ssd.OccType.GetContentDamageFunctionForHazard(e).SampleValue(depthAboveFFE) / 100
-		cdamageValue := cdamagePercent * ssd.StructVal
-
-		return damageValue, cdamageValue, nil
+		s.StructureDamagePercent = structureDamagePercent * s.StructureValue
+		s.ContentDamagePercent = contentDamagePercent * s.ContentsValue
+		s.StructureDamageValue = structureDamagePercent * s.StructureValue
+		s.ContentDamageValue = contentDamagePercent * s.ContentsValue
 	}
-	return 0, 0, errors.New("Verify depth is provided")
 }
 
-func CustomCurve() OccupancyTypeStochastic {
+// -------------------Read in Damage Curves
+type DDF struct {
+	Name            string    `json:"name"`
+	Depth           []float64 `json:"depth"`
+	StructureDamage []float64 `json:"structure_damage"`
+	ContentDamage   []float64 `json:"content_damage"`
+}
 
-	structurexs := []float64{-4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0}
-	structureys := []float64{0, 0, 0, 0, 11, 29, 38, 44, 51, 56, 63, 66, 71, 75, 77, 79, 81, 84, 86, 88, 89}
-	var structuredamagefunction = paireddata.PairedData{Xvals: structurexs, Yvals: structureys}
+type DDFS struct {
+	Data   string
+	Curves []DDF
+}
 
-	contentxs := []float64{-4.0, -3.0, -2.0, -1.0, 0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0}
-	contentys := []float64{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-	var contentdamagefunction = paireddata.PairedData{Xvals: contentxs, Yvals: contentys}
-
+func GetDeterministicCurve(ddfs DDFS, name string) (OccupancyTypeDeterministic, error) {
+	var ddf DDF
 	sm := make(map[hazards.Parameter]interface{})
-	var sdf = DamageFunctionFamilyStochastic{DamageFunctions: sm}
+	sdf := DamageFunctionFamilyStochastic{DamageFunctions: sm}
+
+	for i := 0; i < len(ddfs.Curves); i++ {
+
+		useDDF := ddfs.Curves[i]
+
+		switch useDDF.Name {
+		case name:
+			ddf = useDDF
+		default:
+			continue
+		}
+	}
+
+	if ddf.Name == "" {
+		errorMessage := fmt.Sprintf("Curve not found --> %s", name)
+		return OccupancyTypeDeterministic{}, errors.New(errorMessage)
+	}
 
 	cm := make(map[hazards.Parameter]interface{})
-	var cdf = DamageFunctionFamilyStochastic{DamageFunctions: cm}
+	cdf := DamageFunctionFamilyStochastic{DamageFunctions: cm}
 
-	//Default hazard.
-	sdf.DamageFunctions[hazards.Default] = structuredamagefunction
-	cdf.DamageFunctions[hazards.Default] = contentdamagefunction
+	sdf.DamageFunctions[hazards.Depth] = paireddata.PairedData{Xvals: ddf.Depth, Yvals: ddf.StructureDamage}
+	cdf.DamageFunctions[hazards.Depth] = paireddata.PairedData{Xvals: ddf.Depth, Yvals: ddf.ContentDamage}
 
-	//Depth, salinity hazard.
-	sdf.DamageFunctions[hazards.Depth|hazards.Salinity] = structuredamagefunction
-	cdf.DamageFunctions[hazards.Depth|hazards.Salinity] = contentdamagefunction
+	stochasticCurves := OccupancyTypeStochastic{Name: ddf.Name, StructureDFF: sdf, ContentDFF: cdf}
+	return stochasticCurves.CentralTendency(), nil
+}
 
-	return OccupancyTypeStochastic{Name: "VACurve", StructureDFF: sdf, ContentDFF: cdf}
+func LoadCurves(dataFile string) (DDFS, error) {
+
+	var ddfs DDFS
+	jsonFile, err := os.Open(dataFile)
+	if err != nil {
+		return ddfs, nil
+	}
+
+	defer jsonFile.Close()
+	jsonData, _ := ioutil.ReadAll(jsonFile)
+	json.Unmarshal(jsonData, &ddfs)
+
+	return ddfs, nil
+
 }
