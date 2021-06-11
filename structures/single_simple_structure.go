@@ -16,6 +16,7 @@ type StructureSimpleDeterministic struct {
 	X                      float64                    `json:"x" db:"x"`
 	Y                      float64                    `json:"y" db:"y"`
 	DamageCategory         string                     `json:"damage_category"`
+	HazardDepth            float64                    `json:"hazard_depth"`
 	Hazard                 hazards.HazardEvent        `json:"hazard"`
 	OccupancyType          OccupancyTypeDeterministic `json:"occupancy_type"`
 	StructureValue         float64                    `json:"structure_value" db:"bldg_val"`
@@ -27,11 +28,6 @@ type StructureSimpleDeterministic struct {
 	StructureDamageValue   float64                    `json:"structure_damage_value"`
 	ContentDamageValue     float64                    `json:"content_damage_value"`
 }
-
-// // StructureSimpleDeterministic computes loss at a single structure
-// func (ssd StructureSimpleDeterministic) Location() geography.Location {
-// 	return geography.Location{X: 12011000.000, Y: 3870500.000, SRID: "2284"}
-// }
 
 func ComputeConsequences2(e hazards.HazardEvent, s *StructureSimpleDeterministic) {
 

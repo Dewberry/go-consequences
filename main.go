@@ -39,6 +39,7 @@ func main() {
 
 		ssd.OccupancyType = damageCurve
 
+		// Get the depth from the table
 		depth.SetDepth(10)
 
 		structures.ComputeConsequences2(depth, &ssd)
