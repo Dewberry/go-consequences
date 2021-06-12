@@ -7,43 +7,52 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-var buildingAttributes string = `SELECT uid, ST_X(ST_Centroid(geom)) as x, ST_Y(ST_Centroid(geom)) as y, foundation, bldg_val FROM geo_context.buildings LIMIT 10;`
+// var buildingAttributes string = `SELECT uid, ST_X(ST_Centroid(geom)) as x, ST_Y(ST_Centroid(geom)) as y, foundation, bldg_val FROM geo_context.buildings LIMIT 10;`
 
-// type Building struct {
-// 	UID        string  `json:"uid" db:"uid"`
-// 	X          float64 `json:"x" db:"x"`
-// 	Y          float64 `json:"y" db:"y"`
-// 	Foundation string  `json:"foundation" db:"foundation"`
-// 	BldValue   float64 `json:"bldg_val" db:"bldg_val"`
-// }
+var (
+	buildingAttributesGetSQL string = `
+	SELECT 
+		a.uid, 
+		a.ddf, 
+		a.ffh, 
+		a.structure_value, 
+		a.content_value, 
+		b.event_type,
+		b.epoch,
+		b.dg + b.wv as depth 
+	FROM geo_context.buildings_loss_attributed a
+	INNER JOIN summary.buildings_depth as b
+	ON a.uid = b.uid
+	WHERE 
+		b.dg IS NOT NULL AND
+		b.dg != 'NaN' AND
+		b.wv != 'NaN';`
+	// limit 10;`
 
-// func GetBuildingAttributes(db *sqlx.DB) []Building {
+	buildingLossUpsertSQL string = `	
+	INSERT into summary.buildings_loss(uid, 
+										epoch, 
+										event_type, 
+										structure_damage_percent, 
+										structure_damage_value, 
+										content_damage_percent,
+										content_damage_value)
+							VALUES ($1, $2, $3, $4, $5, $6, $7) 
+	ON CONFLICT (uid, epoch, event_type) 
+	DO
+	UPDATE SET 
+		structure_damage_percent = EXCLUDED.structure_damage_percent,
+		structure_damage_value = EXCLUDED.structure_damage_value,
+		content_damage_percent = EXCLUDED.content_damage_percent,
+		content_damage_value = EXCLUDED.content_damage_value;`
+)
 
-// 	rows, err := db.Queryx(buildingAttributes)
+func QueryBuildingAttributes(db *sqlx.DB) ([]structures.StructureSimpleDeterministic, error) {
 
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-
-// 	defer rows.Close()
-// 	result := make([]Building, 0)
-// 	for rows.Next() {
-// 		var b Building
-// 		err = rows.StructScan(&b)
-// 		if err != nil {
-// 			fmt.Println(err)
-// 		}
-// 		result = append(result, b)
-// 	}
-// 	return result
-// }
-
-func GetBuildingAttributes(db *sqlx.DB) []structures.StructureSimpleDeterministic {
-
-	rows, err := db.Queryx(buildingAttributes)
+	rows, err := db.Queryx(buildingAttributesGetSQL)
 
 	if err != nil {
-		fmt.Println(err)
+		return []structures.StructureSimpleDeterministic{}, err
 	}
 
 	defer rows.Close()
@@ -56,5 +65,23 @@ func GetBuildingAttributes(db *sqlx.DB) []structures.StructureSimpleDeterministi
 		}
 		result = append(result, s)
 	}
-	return result
+	return result, nil
+}
+
+func UpsertBuildingLoss(ssd structures.StructureSimpleDeterministic, db *sqlx.DB) error {
+
+	_, err := db.Exec(buildingLossUpsertSQL,
+		ssd.FID,
+		ssd.Epoch,
+		ssd.Event,
+		ssd.StructureDamagePercent,
+		ssd.StructureDamageValue,
+		ssd.ContentDamagePercent,
+		ssd.ContentDamageValue)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

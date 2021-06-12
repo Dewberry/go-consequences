@@ -12,6 +12,8 @@ var depth *hazards.DepthEvent = new(hazards.DepthEvent)
 
 func main() {
 
+	var run bool = false
+
 	// Read in Damage Curves from JSON
 	ddfs, err := structures.LoadCurves("structures/coastal-ddfs.json")
 	if err != nil {
@@ -20,35 +22,45 @@ func main() {
 
 	// Read in Structure Data from Postgres
 	dbConn := db.Init()
-	buildingData := db.GetBuildingAttributes(dbConn)
-
-	// Iterate over the buildings and compute damages
-	for i := 0; i < len(buildingData); i++ {
-		var ssd structures.StructureSimpleDeterministic
-
-		ssd = buildingData[i]
-
-		// Set Manually until fields are in place in the db matching up with curves
-		ssd.DamageCategory = "CPFRA_1901"
-		ssd.FoundationHeight = 2
-
-		damageCurve, err := structures.GetDeterministicCurve(ddfs, ssd.DamageCategory)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		ssd.OccupancyType = damageCurve
-
-		// Get the depth from the table
-		depth.SetDepth(10)
-
-		structures.ComputeConsequences2(depth, &ssd)
-
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		fmt.Println(ssd.FID, "| ", ssd.StructureValue, ssd.StructureDamageValue, ssd.ContentDamageValue)
+	buildingData, err := db.QueryBuildingAttributes(dbConn)
+	if err != nil {
+		log.Fatal(err)
 	}
 
+	if run {
+
+		// Iterate over the buildings and compute damages
+		for i := 0; i < len(buildingData); i++ {
+
+			// Read in Structure data from database
+			var ssd structures.StructureSimpleDeterministic
+			ssd = buildingData[i]
+
+			// Pair DDF curve from curves database (JSON)
+			err := structures.GetDeterministicCurve(ddfs, &ssd)
+			if err != nil {
+				fmt.Println(err)
+				// log.Fatal(err) // Need to turn this off when all curves in place
+			} else {
+
+				// Get the recorded event depth
+				depth.SetDepth(ssd.HazardDepth)
+
+				// Calculate Loss
+				structures.ComputeConsequences2(depth, &ssd)
+				if err != nil {
+					log.Fatal(err)
+				}
+
+				// // Upsert Loss to database
+				// err = db.UpsertBuildingLoss(ssd, dbConn)
+				// if err != nil {
+				// 	log.Fatal(err)
+				// }
+			}
+
+		}
+
+	}
+	fmt.Println("All Done!")
 }
