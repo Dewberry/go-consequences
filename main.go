@@ -6,13 +6,15 @@ import (
 	"app/structures"
 	"fmt"
 	"log"
+	"time"
 )
 
 var depth *hazards.DepthEvent = new(hazards.DepthEvent)
 
 func main() {
 
-	var run bool = false
+	var run bool = true
+	st := time.Now()
 
 	// Read in Damage Curves from JSON
 	ddfs, err := structures.LoadCurves("structures/coastal-ddfs.json")
@@ -29,6 +31,7 @@ func main() {
 
 	if run {
 
+		ssdBatch := make([]structures.StructureSimpleDeterministicResult, 0)
 		// Iterate over the buildings and compute damages
 		for i := 0; i < len(buildingData); i++ {
 
@@ -52,11 +55,34 @@ func main() {
 					log.Fatal(err)
 				}
 
-				// // Upsert Loss to database
-				// err = db.UpsertBuildingLoss(ssd, dbConn)
-				// if err != nil {
-				// 	log.Fatal(err)
-				// }
+				ssdResult := structures.StructureSimpleDeterministicResult{
+					FID:                    ssd.FID,
+					Epoch:                  ssd.Epoch,
+					Event:                  ssd.Event,
+					StructureDamagePercent: ssd.StructureDamagePercent,
+					ContentDamagePercent:   ssd.ContentDamagePercent,
+					StructureDamageValue:   ssd.StructureDamageValue,
+					ContentDamageValue:     ssd.ContentDamageValue,
+				}
+
+				ssdBatch = append(ssdBatch, ssdResult)
+
+				// fmt.Println(ssd.ContentDamagePercent)
+				// Upsert Loss to database
+
+				if i%5000 == 0 {
+					err = db.UpsertBuildingBatchLoss(ssdBatch, dbConn)
+					if err != nil {
+						log.Fatal(err)
+					}
+					ssdBatch = make([]structures.StructureSimpleDeterministicResult, 0)
+
+					pctComplete := float64(i) / float64(len(buildingData))
+					// fmt.Println("%.2f Percent Complete in %v seconds", pctComplete, time.Since(st))
+					message := fmt.Sprintf("%.2f Percent Complete in %v", pctComplete, time.Since(st))
+					fmt.Println(message)
+				}
+
 			}
 
 		}

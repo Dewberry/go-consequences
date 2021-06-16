@@ -31,6 +31,17 @@ type StructureSimpleDeterministic struct {
 	ContentDamageValue     float64                    `json:"content_damage_value" db:"content_damage_value"`
 }
 
+// StructureSimpleDeterministic is a paired down version of  struct StructureDeterministic
+type StructureSimpleDeterministicResult struct {
+	FID                    string  `json:"fid" nsi:"fd_id" db:"uid"`
+	Epoch                  string  `json:"epoch" db:"epoch"`      // e.g. 2020 or 2040
+	Event                  string  `json:"event" db:"event_type"` // e.g. mlw or mhw or 500yr
+	StructureDamagePercent float64 `json:"structure_damage_percent" db:"structure_damage_percent"`
+	ContentDamagePercent   float64 `json:"content_damage_percent" db:"content_damage_percent"`
+	StructureDamageValue   float64 `json:"structure_damage_value" db:"structure_damage_value"`
+	ContentDamageValue     float64 `json:"content_damage_value" db:"content_damage_value"`
+}
+
 func ComputeConsequences2(e hazards.HazardEvent, ssd *StructureSimpleDeterministic) {
 
 	if e.Has(hazards.Depth) {

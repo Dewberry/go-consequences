@@ -7,8 +7,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// var buildingAttributes string = `SELECT uid, ST_X(ST_Centroid(geom)) as x, ST_Y(ST_Centroid(geom)) as y, foundation, bldg_val FROM geo_context.buildings LIMIT 10;`
-
 var (
 	buildingAttributesGetSQL string = `
 	SELECT 
@@ -24,10 +22,11 @@ var (
 	INNER JOIN summary.buildings_depth as b
 	ON a.uid = b.uid
 	WHERE 
+		a.ffh IS NOT NULL AND
+		a.uid < 50000 AND
 		b.dg IS NOT NULL AND
 		b.dg != 'NaN' AND
 		b.wv != 'NaN';`
-	// limit 10;`
 
 	buildingLossUpsertSQL string = `	
 	INSERT into summary.buildings_loss(uid, 
@@ -38,6 +37,29 @@ var (
 										content_damage_percent,
 										content_damage_value)
 							VALUES ($1, $2, $3, $4, $5, $6, $7) 
+	ON CONFLICT (uid, epoch, event_type) 
+	DO
+	UPDATE SET 
+		structure_damage_percent = EXCLUDED.structure_damage_percent,
+		structure_damage_value = EXCLUDED.structure_damage_value,
+		content_damage_percent = EXCLUDED.content_damage_percent,
+		content_damage_value = EXCLUDED.content_damage_value;`
+
+	buildingLossUpsertBatchSQL string = `	
+	INSERT into summary.buildings_loss(uid, 
+										epoch, 
+										event_type, 
+										structure_damage_percent, 
+										structure_damage_value, 
+										content_damage_percent,
+										content_damage_value)
+							VALUES (:uid, 
+									:epoch, 
+									:event_type, 
+									:structure_damage_percent, 
+									:structure_damage_value, 
+									:content_damage_percent,
+									:content_damage_value) 
 	ON CONFLICT (uid, epoch, event_type) 
 	DO
 	UPDATE SET 
@@ -78,6 +100,17 @@ func UpsertBuildingLoss(ssd structures.StructureSimpleDeterministic, db *sqlx.DB
 		ssd.StructureDamageValue,
 		ssd.ContentDamagePercent,
 		ssd.ContentDamageValue)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func UpsertBuildingBatchLoss(ssd []structures.StructureSimpleDeterministicResult, db *sqlx.DB) error {
+
+	_, err := db.NamedExec(buildingLossUpsertBatchSQL, ssd)
 
 	if err != nil {
 		return err
