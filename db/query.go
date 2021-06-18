@@ -23,7 +23,7 @@ var (
 	ON a.uid = b.uid
 	WHERE 
 		a.ffh IS NOT NULL AND
-		a.uid < 50000 AND
+		a.uid >= 0 AND
 		b.dg IS NOT NULL AND
 		b.dg != 'NaN' AND
 		b.wv != 'NaN';`
