@@ -10,26 +10,26 @@ import (
 var (
 	buildingAttributesGetSQL string = `
 	SELECT 
-		a.uid, 
-		a.ddf, 
+		a.fid, 
+		b.ddf, 
 		a.ffh, 
-		a.structure_value, 
-		a.content_value, 
+		a.bldg_rep_cost, 
+		a.cont_rep_cost, 
 		b.event_type,
 		b.epoch,
 		b.dg + b.wv as depth 
-	FROM geo_context.buildings_loss_attributed a
-	INNER JOIN summary.buildings_depth as b
-	ON a.uid = b.uid
+	FROM properties.buildings_attributed a
+	INNER JOIN properties.buildings_depth as b
+	ON a.fid = b.fid
 	WHERE 
 		a.ffh IS NOT NULL AND
-		a.uid >= 0 AND
+		a.fid >= 0 AND
 		b.dg IS NOT NULL AND
 		b.dg != 'NaN' AND
 		b.wv != 'NaN';`
 
 	buildingLossUpsertSQL string = `	
-	INSERT into summary.buildings_loss(uid, 
+	INSERT into properties.buildings_loss(fid, 
 										epoch, 
 										event_type, 
 										structure_damage_percent, 
@@ -37,7 +37,7 @@ var (
 										content_damage_percent,
 										content_damage_value)
 							VALUES ($1, $2, $3, $4, $5, $6, $7) 
-	ON CONFLICT (uid, epoch, event_type) 
+	ON CONFLICT (fid, epoch, event_type) 
 	DO
 	UPDATE SET 
 		structure_damage_percent = EXCLUDED.structure_damage_percent,
@@ -46,21 +46,21 @@ var (
 		content_damage_value = EXCLUDED.content_damage_value;`
 
 	buildingLossUpsertBatchSQL string = `	
-	INSERT into summary.buildings_loss(uid, 
+	INSERT into properties.buildings_loss(fid, 
 										epoch, 
 										event_type, 
 										structure_damage_percent, 
 										structure_damage_value, 
 										content_damage_percent,
 										content_damage_value)
-							VALUES (:uid, 
+							VALUES (:fid, 
 									:epoch, 
 									:event_type, 
 									:structure_damage_percent, 
 									:structure_damage_value, 
 									:content_damage_percent,
 									:content_damage_value) 
-	ON CONFLICT (uid, epoch, event_type) 
+	ON CONFLICT (fid, epoch, event_type) 
 	DO
 	UPDATE SET 
 		structure_damage_percent = EXCLUDED.structure_damage_percent,

@@ -13,7 +13,7 @@ var depth *hazards.DepthEvent = new(hazards.DepthEvent)
 
 func main() {
 
-	var run bool = false
+	var run bool = true
 	st := time.Now()
 
 	if run {

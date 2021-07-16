@@ -12,7 +12,7 @@ import (
 
 // StructureSimpleDeterministic is a paired down version of  struct StructureDeterministic
 type StructureSimpleDeterministic struct {
-	FID                    string                     `json:"fid" nsi:"fd_id" db:"uid"`
+	FID                    string                     `json:"fid" nsi:"fd_id" db:"fid"`
 	X                      float64                    `json:"x" db:"x"`
 	Y                      float64                    `json:"y" db:"y"`
 	Epoch                  string                     `json:"epoch" db:"epoch"`      // e.g. 2020 or 2040
@@ -21,9 +21,9 @@ type StructureSimpleDeterministic struct {
 	HazardDepth            float64                    `json:"hazard_depth" db:"depth"`
 	Hazard                 hazards.HazardEvent        `json:"hazard"`
 	OccupancyType          OccupancyTypeDeterministic `json:"occupancy_type"`
-	StructureValue         float64                    `json:"structure_value" db:"structure_value"`
-	ContentsValue          float64                    `json:"contents_value" db:"content_value"`
-	Foundation             string                     `json:"foundation" db:"foundation"`
+	StructureValue         float64                    `json:"structure_value" db:"bldg_rep_cost"`
+	ContentsValue          float64                    `json:"contents_value" db:"cont_rep_cost"`
+	Foundation             string                     `json:"foundation" db:"udf_foundationtype"`
 	FoundationHeight       float64                    `json:"foundation_height" db:"ffh"`
 	StructureDamagePercent float64                    `json:"structure_damage_percent" db:"structure_damage_percent"`
 	ContentDamagePercent   float64                    `json:"content_damage_percent" db:"content_damage_percent"`
@@ -33,7 +33,7 @@ type StructureSimpleDeterministic struct {
 
 // StructureSimpleDeterministic is a paired down version of  struct StructureDeterministic
 type StructureSimpleDeterministicResult struct {
-	FID                    string  `json:"fid" nsi:"fd_id" db:"uid"`
+	FID                    string  `json:"fid" nsi:"fd_id" db:"fid"`
 	Epoch                  string  `json:"epoch" db:"epoch"`      // e.g. 2020 or 2040
 	Event                  string  `json:"event" db:"event_type"` // e.g. mlw or mhw or 500yr
 	StructureDamagePercent float64 `json:"structure_damage_percent" db:"structure_damage_percent"`
